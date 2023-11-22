@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	"errors"
 )
 
 var DefaultInjector = New()
@@ -248,6 +250,8 @@ func (i *Injector) forEach(cb func(name string, service any)) {
 	}
 }
 
+var ErrNotFound = fmt.Errorf("DI: could not find service")
+
 func (i *Injector) serviceNotFound(name string) error {
 	// @TODO: use the Keys+Map functions from `golang.org/x/exp/maps` as
 	// soon as it is released in stdlib.
@@ -256,7 +260,7 @@ func (i *Injector) serviceNotFound(name string) error {
 		return fmt.Sprintf("`%s`", name)
 	})
 
-	return fmt.Errorf("DI: could not find service `%s`, available services: %s", name, strings.Join(servicesNames, ", "))
+	return errors.Join(ErrNotFound, fmt.Errorf("`%s`, available services: %s", name, strings.Join(servicesNames, ", ")))
 }
 
 func (i *Injector) onServiceInvoke(name string) {
